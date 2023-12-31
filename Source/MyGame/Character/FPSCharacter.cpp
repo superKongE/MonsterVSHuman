@@ -477,7 +477,7 @@ void AFPSCharacter::ManageStemina(float DeltaTime)
 }
 
 
-// 게임 중간에 나가기(서버에서 호출됨)
+// 게임 중간에 나가기
 void AFPSCharacter::ServerLeftGame_Implementation()
 {
 	AMainGameMode* MainGameMode = GetWorld()->GetAuthGameMode<AMainGameMode>();
@@ -908,7 +908,7 @@ void AFPSCharacter::Multicast_Elim_Implementation(bool bPlayerLeftGame)
 		1.5f
 	);
 }
-// 부활요청
+// 죽고나면 서버에게 죽음을 알려준다
 void AFPSCharacter::EndElime()
 {
 	AMainGameMode* CharacterGameMode = GetWorld()->GetAuthGameMode<AMainGameMode>();

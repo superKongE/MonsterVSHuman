@@ -100,22 +100,14 @@ void ACharacterController::Tick(float DeltaTime)
 
 	TimeSyncRunningTime += DeltaTime;
 	// TimeSyncFrequency(5초) 마다 서버와 클라이언트의 시간 차이를 계산해 동기화
-	if (IsLocalController() && TimeSyncRunningTime >= TimeSyncFrequency)
+	if (IsLocalController())
 	{
 		CheckTimeSync(DeltaTime);
-		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+		//ServerRequestServerTime(GetWorld()->GetTimeSeconds());
 		TimeSyncRunningTime = 0.f;
 	}
-	/*if (HasAuthority())
-	{
-		CheckTimeSync(DeltaTime);
-	}*/
 
-	// 경기 시간
-	//if (GameStart)
-	//{
-		SetHUDTime();
-	//}
+	SetHUDTime();
 
 	CharacterHUD = CharacterHUD == nullptr ? Cast<ACharacterHUD>(GetHUD()) : CharacterHUD;
 	PlayerState = PlayerState == nullptr ? GetPlayerState<ACharacterState>() : PlayerState;
@@ -428,43 +420,18 @@ void ACharacterController::SetHUDMatchCountDown(float Time)
 }
 void ACharacterController::SetHUDTime()
 {
-	//uint32 SecondsLeft = FMath::CeilToInt(GetServerTime() - LevelStartingTime + ReadyCountTime);
 	uint32 SecondsLeft = FMath::CeilToInt(GetServerTime() - LevelStartingTime);
-	//uint32 SecondsLeft = FMath::CeilToInt(GetServerTime());
-	//UE_LOG(LogTemp, Error, TEXT("%d"), SecondsLeft);
+
 	MainGameMode = MainGameMode == nullptr ? GetWorld()->GetAuthGameMode<AMainGameMode>() : MainGameMode;
 
 	if (CountdownInt != SecondsLeft)
 	{
 		SetHUDMatchCountDown(GetServerTime() - LevelStartingTime);
-		//SetHUDMatchCountDown(ServerTime);
 	}
 
 	CountdownInt = SecondsLeft;
 }
-//void ACharacterController::SetHUDReadyTime()
-//{
-//	if (!IsLocalController()) return;
-//
-//	CharacterHUD = CharacterHUD == nullptr ? Cast<ACharacterHUD>(GetHUD()) : CharacterHUD;
-//
-//	if (CharacterHUD && CharacterHUD->Announcment && CharacterHUD->Announcment->Timer)
-//	{
-//		FString str = FString::Printf(TEXT("SetHUDReadyTime : %d"), FMath::CeilToInt(ReadyCountTime) - FMath::CeilToInt(GetServerTime() - LevelStartingTime));
-//		if (GEngine)
-//		{
-//			GEngine->AddOnScreenDebugMessage(
-//				-1,
-//				15.f,
-//				FColor::Red,
-//				str
-//			);
-//		}
-//		FString TimerText = FString::Printf(TEXT("%d"), FMath::CeilToInt(ReadyCountTime) - FMath::CeilToInt(GetServerTime() - LevelStartingTime));
-//		//FString TimerText = FString::Printf(TEXT("%d"), FMath::CeilToInt(ReadyCountTime) - FMath::CeilToInt(ServerTime));
-//		CharacterHUD->Announcment->Timer->SetText(FText::FromString(TimerText));
-//	}
-//}
+
 
 // 핑 관련 함수들
 void ACharacterController::HighPingWarning()
@@ -495,32 +462,6 @@ void ACharacterController::StopHighPingWarning()
 // 핑 체크 하면서 메시지 도배 관리
 void ACharacterController::CheckPing(float DeltaTime)
 {
-	CurrentSeconds += DeltaTime;
-	if (!IsSpam && CurrentSeconds >= MessageSpamDelayTime)
-	{
-		// 도배하면 차단
-		if (SendMessageCount >= MessageSpaemCountLimit)
-		{
-			CurrentSeconds = 0.f;
-			SendMessageCount = 0;
-			IsSpam = true;
-			//FInputModeGameOnly InputModeData;
-			SetInputMode(FInputModeGameOnly());
-			//SetShowMouseCursor(false);
-			GetWorldTimerManager().SetTimer(
-				SpamTimer,
-				this,
-				&ACharacterController::SpamFinish,
-				SpamDelay,
-				false);
-		}
-		else
-		{
-			CurrentSeconds = 0.f;
-			SendMessageCount = 0;
-		}
-	}
-
 	HighPingRunningTime += DeltaTime;
 	if (HighPingRunningTime >= CheckPingFrequncy)
 	{
@@ -587,11 +528,6 @@ void ACharacterController::CheckTimeSync(float DeltaTime)
 		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
 		TimeSyncRunningTime = 0.f;
 	}
-	/*MainGameMode = MainGameMode == nullptr ? GetWorld()->GetAuthGameMode<AMainGameMode>() : MainGameMode;
-	if (MainGameMode)
-	{
-		ServerTime = MainGameMode->GetServerTime();
-	}*/
 }
 
 
@@ -877,7 +813,7 @@ void ACharacterController::Server_DestroyLobbyHUDComplete_Implementation()
 // 채팅 관련 함수들
 void ACharacterController::ShowChat()
 {
-	if (!IsLocalController() || IsSpam || IsOpenChatBox) return;
+	if (!IsLocalController() || IsOpenChatBox) return;
 
 	if (IsLobby)
 	{
@@ -945,7 +881,6 @@ void ACharacterController::SendMessage()
 		FString Message = CharacterHUD->ChatBox->WriteMessage->GetText().ToString();
 		if (Message.Len() > 0)
 		{
-			SendMessageCount++;
 			Server_SendMessage(HumanGameInstance->GetUserName() + " : " + Message, IsTeamChat);
 			CharacterHUD->ChatBox->WriteMessage->SetText(FText::FromString(""));
 			FInputModeGameAndUI InputModeData;
@@ -1029,10 +964,6 @@ void ACharacterController::MakeMessage()
 		}
 	}
 }
-void ACharacterController::SpamFinish()
-{
-	IsSpam = false;
-}
 
 
 // 로비 채팅
@@ -1077,7 +1008,6 @@ void ACharacterController::LobbySendMessage()
 		FString Message = LobbyHUD->LobbyMenu->WriteMessage->GetText().ToString();
 		if (Message.Len() > 0)
 		{
-			SendMessageCount++;
 			LobbyServer_SendMessage(HumanGameInstance->GetUserName() + " : " + Message);
 			LobbyHUD->LobbyMenu->WriteMessage->SetText(FText::FromString(""));
 			FInputModeGameAndUI InputModeData;

@@ -70,7 +70,6 @@ public:
 	void ShowChat();
 	void ShowChatBoxHUD();
 	void CloseChatBoxHUD();
-	void SpamFinish();
 	void SetChatBoxHUDMessage(const FString& Message);
 	UFUNCTION(BlueprintCallable)
 	void SendMessage();
@@ -244,18 +243,8 @@ private:
 	int32 PreviousMessageLength = 0;
 	UPROPERTY(EditAnywhere)
 	int32 MessageLengthLimit = 30;
-	UPROPERTY(EditAnywhere, Category = Chat)
-	float MessageSpamDelayTime = 2.5f; // 2.5초 안에
-	UPROPERTY(EditAnywhere, Category = Chat)
-	int32 MessageSpaemCountLimit = 5; // 메시지를 5번 이상 보내면 일정시간 동안 차단
-	int32 SendMessageCount = 0; // 2.5초 동안 보낸 메시지 수
-	float CurrentSeconds = 0.f; // 2.5초가 됐는지
-	bool IsSpam = false;
 	bool IsOpenChatBox = false;
 	bool LobbyIsOpenChatBox = false;
-	FTimerHandle SpamTimer;
-	UPROPERTY(EditAnywhere, Category = Chat)
-	float SpamDelay = 30.f;
 
 	// 핑 관련 변수들
 	float HighPingRunningTime = 0.f;  // 핑 경고 표시가 끝난 후 부터 경과된 시간
