@@ -99,13 +99,9 @@ void ACharacterController::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	TimeSyncRunningTime += DeltaTime;
+
 	// TimeSyncFrequency(5초) 마다 서버와 클라이언트의 시간 차이를 계산해 동기화
-	if (IsLocalController())
-	{
-		CheckTimeSync(DeltaTime);
-		//ServerRequestServerTime(GetWorld()->GetTimeSeconds());
-		TimeSyncRunningTime = 0.f;
-	}
+	CheckTimeSync(DeltaTime);
 
 	SetHUDTime();
 
